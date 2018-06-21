@@ -2,13 +2,12 @@
 import subprocess, shlex, math, sys, os, socket
 
 from utils.workload import Workload
-from get_ctime import *
 from utils.ip_info import ip_info
 
 LOG_DIR = 'logs/'
 
-LOGGING_IFACES = [('han-2.stanford.edu', 'eth3'), ('han-3.stanford.edu', 'eth4'), ('han-5.stanford.edu', 'eth3')]
-#LOGGING_IFACE = ('han-2.stanford.edu', 'eth3')
+#LOGGING_IFACES = [('packet-1', 'eth2')]
+LOGGING_IFACES = []
 
 class FlowGenerator:
 
@@ -16,16 +15,16 @@ class FlowGenerator:
     starts the rate monitor on each host
     starts iperf server on each destination machine
     """
-    def __init__(self, workload):
+    def __init__(self, workload_file):
 
-        self.workload = workload        
+        self.workload = Workload(workload_file)        
         self.iperf_servers = []
         self.iperf_clients = []
         self.logging_processes = []
 
         self.startLogging() 
 
-        for flow in workload.flows:
+        for flow in self.workload.flows:
             self.setupFlow(flow)
 
 
@@ -48,14 +47,14 @@ class FlowGenerator:
 
         # start iperf server on the destination
         p = self.startProcess(start_iperf_server.format(flow['dstHost'], flow['flowID']))
-        self.iperf_servers.append((dstHost, p))
+        self.iperf_servers.append((flow['dstHost'], p))
 
     """
     get the global start time, distributed to each of the
     required hosts, and run the experiment 
     """
     def runExperiment(self):
-        start_iperf_client = os.path.expandvars('ssh root@{} "iperf3 -p {} -c {} -n {} --tos {}"')
+        start_iperf_client = os.path.expandvars('ssh root@{} "iperf3 -p {} -c {} -n {} --tos 0x{:02x}"')
 
         # start iperf clients on each src machine
         for flow in self.workload.flows:
@@ -94,7 +93,7 @@ class FlowGenerator:
         # copy log files
         copy_log_file = 'scp root@{0}:/tmp/exp_log_{0}.pcap %s' % LOG_DIR
         os.system(os.path.expandvars('rm -rf {}'.format(LOG_DIR)))
-        os.makedirs(log_dir)
+        os.makedirs(LOG_DIR)
         # copy the log file
         for (host, iface) in LOGGING_IFACES:
             self.runCommand(copy_log_file.format(host)) 

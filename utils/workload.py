@@ -16,8 +16,6 @@ class Workload:
         self.flowFormat = r'(?P<numBytes>[ \d]*): (?P<srcIP>[\d\.]*),[ ]*(?P<dstIP>[\d\.]*)'
         self.ip_info = ip_info 
         
-        # self.flows is a list with entries of the form: 
-        #   {'srcIP':'xx.xx.xx.xx', 'dstIP':'yy.yy.yy.yy', 'port':num, 'links':[x, y, z], 'srcHost':h1, 'dstHost':h2}
         self.flows = []
         self.numFlows = None
         self.srcs = None

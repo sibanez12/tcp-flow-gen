@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 import sys, os, argparse
+import time
 from flow_generator import FlowGenerator
 
 def gen_flows(workload):
     fg = FlowGenerator(workload)
+    time.sleep(1)
     fg.runExperiment()
 
 def main():
